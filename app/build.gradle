@@ -1,0 +1,78 @@
+plugins {
+    id 'org.mozilla.rust-android-gradle.rust-android' version "0.9.4"
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.23'
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'androidx.navigation.safeargs.kotlin'
+
+android {
+    namespace 'xyz.proofcast.tee_vm'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "xyz.proofcast.tee_vm"
+        minSdk 31
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    dependenciesInfo {
+        includeInApk true
+        includeInBundle true
+    }
+}
+
+cargo {
+    module  = "./rust"
+    libname = "tee-vm"
+    targets = ["arm64"]
+    profile = "release"
+    features { all() }
+    targetIncludes = ["libtee_vm.so"]
+    targetDirectory = "./rust/target/"
+}
+
+tasks.whenTaskAdded { task ->
+    if ((task.name == 'javaPreCompileDebug' || task.name == 'javaPreCompileRelease')) {
+        task.dependsOn 'cargoBuild'
+    }
+}
+
+dependencies {
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.material
+    implementation libs.androidx.constraintlayout
+    testImplementation libs.junit
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso.core
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.14.0'
+    implementation 'io.ktor:ktor-client-core:2.3.10'
+    implementation 'io.ktor:ktor-client-cio:2.3.10'
+    implementation 'io.ktor:ktor-client-websockets:2.3.10'
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-cbor:1.6.0'
+    implementation 'org.web3j:core:4.8.7-android'
+    implementation 'commons-codec:commons-codec:1.17.0'
+    implementation files('rust/target/armv7-linux-androideabi/release/libtee_vm.so')
+}

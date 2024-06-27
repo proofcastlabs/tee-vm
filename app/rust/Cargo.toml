@@ -1,0 +1,16 @@
+[package]
+name = "tee-vm"
+version = "0.1.0"
+edition = "2021"
+authors = [ "Enrico Vincenzi <envin@pm.me>, " ]
+description = "The java entry point for tee-vm"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+log = "0.4.11"
+android_log = "0.1.3"
+jni = "0.21.1"
+memfd-exec = "0.2.1"
+qemu = { path = "../../../../work/rust-wrapper/qemu-rs/qemu", features = ["riscv64-softmmu"] }
